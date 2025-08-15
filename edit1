@@ -1,1 +1,90 @@
-tadaaaa
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Drawing Program</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h2>Simple Drawing Program</h2>
+  <canvas id="bindow" width="800" height="500"></canvas>
+  <p>Left click: draw. Right click: erase.</p>
+  <script src="script.js"></script>
+</body>
+</html>
+
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #f4f4f4;
+  margin: 0;
+  padding: 30px;
+}
+
+canvas {
+  border: 2px solid #333;
+  background: #fff;
+  cursor: crosshair;
+  box-shadow: 2px 2px 10px #aaa;
+}
+
+const canvas = document.getElementById('bindow');
+const ctx = canvas.getContext('2d');
+
+let drawing = false;
+let erasing = false;
+let lastX = 0;
+let lastY = 0;
+
+// Prevent context menu on canvas (so right click erases)
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+function startDraw(e) {
+  if (e.button === 0) { // Left click for draw
+    drawing = true;
+    erasing = false;
+  } else if (e.button === 2) { // Right click for erase
+    erasing = true;
+    drawing = false;
+  }
+  [lastX, lastY] = getMousePos(e);
+}
+
+function endDraw() {
+  drawing = false;
+  erasing = false;
+}
+
+function getMousePos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return [
+    e.clientX - rect.left,
+    e.clientY - rect.top
+  ];
+}
+
+function draw(e) {
+  if (!drawing && !erasing) return;
+  const [x, y] = getMousePos(e);
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(x, y);
+  ctx.lineWidth = 3;
+
+  if (drawing) {
+    ctx.strokeStyle = "#000";
+    ctx.globalCompositeOperation = "source-over";
+  } else if (erasing) {
+    ctx.strokeStyle = "#fff";
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.lineWidth = 16; // wider for erasing
+  }
+  ctx.stroke();
+  [lastX, lastY] = [x, y];
+}
+
+// Mouse events
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mouseup', endDraw);
+canvas.addEventListener('mouseleave', endDraw);
+canvas.addEventListener('mousemove', draw);
